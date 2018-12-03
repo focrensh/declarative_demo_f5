@@ -1,0 +1,82 @@
+- name: Push BIG-IP
+  hosts: bigip
+  gather_facts: false
+
+
+  tasks:
+
+  # Set Var for curent DO file name
+  - name: Retrieve DO Install Version
+    find:
+      paths: ./files
+      patterns: "f5-decl*.rpm"
+    register: dorpm
+    delegate_to: localhost
+
+# Set Var for curent AS3 file name
+  - name: Retrieve AS3 Install Version
+    find:
+      paths: ./files
+      patterns: "f5-appsvcs*.rpm"
+    register: as3rpm
+    delegate_to: localhost
+
+  - name: Install DO
+    bigip_iapplx_package:
+      provider: "{{ hostvars[inventory_hostname]['provider']  }}"
+      package: "{{ dorpm.files[0].path }}"
+    delegate_to: localhost
+
+  - pause:
+      seconds: 5
+
+  - name: Install AS3
+    bigip_iapplx_package:
+      provider: "{{ hostvars[inventory_hostname]['provider']  }}"
+      package: "{{ as3rpm.files[0].path }}"
+    delegate_to: localhost
+
+  - pause:
+      seconds: 5
+
+  - name: Push DO
+    uri:
+      url: "https://{{ hostvars[inventory_hostname]['provider']['server'] }}/mgmt/shared/declarative-onboarding"
+      method: POST
+      user: admin
+      password: "{{ hostvars[inventory_hostname]['provider']['password'] }}"
+      body: "{{ lookup('file','host_vars/' + inventory_hostname + '/do.json') }}"
+      status_code: 202
+      timeout: 300
+      body_format: json
+      validate_certs: no
+    delegate_to: localhost
+
+  - pause:
+      seconds: 5
+
+  - name: Push AS3 (LTM)
+    uri:
+      url: "https://{{ hostvars[inventory_hostname]['provider']['server'] }}/mgmt/shared/appsvcs/declare"
+      method: POST
+      user: admin
+      password: "{{ hostvars[inventory_hostname]['provider']['password'] }}"
+      body: "{{ lookup('file','host_vars/' + inventory_hostname + '/apps.json') }}"
+      status_code: 200
+      timeout: 300
+      body_format: json
+      validate_certs: no
+    delegate_to: localhost
+
+  - name: Push AS3 (GSLB)
+    uri:
+      url: "https://{{ hostvars[inventory_hostname]['provider']['server'] }}/mgmt/shared/appsvcs/declare"
+      method: POST
+      user: admin
+      password: "{{ hostvars[inventory_hostname]['provider']['password'] }}"
+      body: "{{ lookup('file','host_vars/' + inventory_hostname + '/gslb.json') }}"
+      status_code: 200
+      timeout: 300
+      body_format: json
+      validate_certs: no
+    delegate_to: localhost

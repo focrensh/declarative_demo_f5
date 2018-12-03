@@ -1,0 +1,60 @@
+{
+	"class": "ADC",
+	"schemaVersion": "3.6.0",
+	"id": "GSLB_Example",
+	"Common": {
+		"class": "Tenant",
+		"Shared": {
+			"class": "Application",
+			"template": "shared",
+			"testServer": {
+				"class": "GSLB_Server",
+				"dataCenter": {
+					"use": "testDataCenter"
+				},
+				"devices": [{
+						"address": "1.2.3.7"
+					}
+				],
+				"virtualServers": [{
+						"address": "1.2.3.8",
+						"port": 5050
+					}
+				]
+			},
+			"testDataCenter": {
+				"class": "GSLB_Data_Center"
+			}
+
+		}
+	},
+    "GSLB_tenant": {
+        "class": "Tenant",
+        "Application": {
+            "class": "Application",
+            "template": "generic",
+            "gslbpool": {
+                "class": "GSLB_Pool",
+                "members": [
+                    {
+                        "ratio": 10,
+                        "server": {
+                            "use": "/Common/Shared/testServer"
+                        },
+                        "virtualServer": "0"
+                    }
+                ],
+                "resourceRecordType": "A"
+            },
+			"testDomain": {
+				"class": "GSLB_Domain",
+				"domainName": "test.gslb.local.com",
+				"resourceRecordType": "A",
+				"pools": [{
+						"use": "gslbpool"
+					}
+				]
+			}
+        }
+    }
+}
