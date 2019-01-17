@@ -41,7 +41,7 @@
 
   - name: Push DO
     uri:
-      url: "https://{{ hostvars[inventory_hostname]['provider']['server'] }}/mgmt/shared/declarative-onboarding"
+      url: "https://{{ hostvars[inventory_hostname]['provider']['server'] }}:{{ hostvars[inventory_hostname]['provider']['server_port'] }}/mgmt/shared/declarative-onboarding"
       method: POST
       user: admin
       password: "{{ hostvars[inventory_hostname]['provider']['password'] }}"
@@ -57,7 +57,7 @@
 
   - name: Push AS3 (LTM)
     uri:
-      url: "https://{{ hostvars[inventory_hostname]['provider']['server'] }}/mgmt/shared/appsvcs/declare"
+      url: "https://{{ hostvars[inventory_hostname]['provider']['server'] }}:{{ hostvars[inventory_hostname]['provider']['server_port'] }}/mgmt/shared/appsvcs/declare"
       method: POST
       user: admin
       password: "{{ hostvars[inventory_hostname]['provider']['password'] }}"
